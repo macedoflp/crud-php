@@ -1,27 +1,23 @@
-# docker-compose.yml
-version: '3.8'
+version: "3.8"
 
 services:
-  app:
-    # 1. Usa o Dockerfile customizado para instalar a extensão SQLite
-    build:
-      context: .
-      dockerfile: ./Dockerfile 
-      
-    volumes:
-      # Monta todo o seu projeto
-      - .:/workspaces/laravel:cached
-      # O volume abaixo é redundante, mas não causa erro. O primeiro já engloba a pasta database.
-
-    # 2. NÃO HÁ depends_on: - db
-
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_mysql
+    ports:
+      - "3306:3306"
     environment:
-      # Conexão correta para SQLite
-      DB_CONNECTION: sqlite
-      DB_HOST: 
-      DB_PORT: 
-      DB_DATABASE: /workspaces/laravel/database/database.sqlite
-      DB_USERNAME: 
-      DB_PASSWORD:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: crud_app
+      MYSQL_USER: crud_user
+      MYSQL_PASSWORD: secretpass123
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-# 3. O serviço 'db' e o volume 'db-data' foram removidos
+volumes:
+  mysql_data:

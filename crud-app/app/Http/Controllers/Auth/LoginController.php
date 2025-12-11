@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use Error;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,19 +28,34 @@ class LoginController extends Controller
             'password' => ['required'],
         ]);
 
-        // Tenta logar
+        // Verifica se o email existe
+        $user = \App\Models\User::where('email', $validated['email'])->first();
+
+        if (!$user) {
+            return back()->withErrors([
+                'email' => 'Nenhuma conta encontrada com este e-mail.',
+            ])->onlyInput('email');
+        }
+
+        // Verifica senha incorreta
+        if (!\Hash::check($validated['password'], $user->password)) {
+            return back()->withErrors([
+                'password' => 'Senha incorreta.',
+            ])->onlyInput('email');
+        }
+
+        // Se tudo ok → tenta logar
         if (Auth::attempt($validated)) {
             $request->session()->regenerate();
             logger('User ' . Auth::user()->name . ' logged in');
-            return redirect('/');
+           return redirect(env('APP_URL') . '/');
         }
 
-        // Falhou → retorna erro
+        // fallback (quase nunca acontece)
         return back()->withErrors([
-            'email' => 'As credenciais fornecidas não correspondem aos nossos registros.',
-        ])->onlyInput('email');
+            'email' => 'Não foi possível autenticar. Tente novamente.',
+        ]);
     }
-
     /**
      * Faz logout.
      */

@@ -42,6 +42,6 @@ class RegisterController extends Controller
         logger('User ' . $user->name . ' logged in');
 
         // Redirecionamento
-        return redirect('/');
+        return redirect(env('APP_URL') . '/');
     }
 }
